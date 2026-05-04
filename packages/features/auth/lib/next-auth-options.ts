@@ -8,12 +8,6 @@ import {
   OUTLOOK_CLIENT_SECRET,
   OUTLOOK_LOGIN_ENABLED,
 } from "@calcom/features/auth/lib/outlook";
-import {
-  IS_ZITADEL_LOGIN_ENABLED,
-  ZITADEL_CLIENT_ID,
-  ZITADEL_CLIENT_SECRET,
-  ZITADEL_ISSUER,
-} from "@calcom/features/auth/lib/zitadel";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -107,6 +101,11 @@ const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
+const ZITADEL_CLIENT_ID = process.env.ZITADEL_CLIENT_ID;
+const ZITADEL_CLIENT_SECRET = process.env.ZITADEL_CLIENT_SECRET;
+const ZITADEL_ISSUER = process.env.ZITADEL_ISSUER;
+const ZITADEL_LOGIN_ENABLED = process.env.ZITADEL_LOGIN_ENABLED === "true";
+const IS_ZITADEL_LOGIN_ENABLED = !!(ZITADEL_CLIENT_ID && ZITADEL_CLIENT_SECRET && ZITADEL_ISSUER && ZITADEL_LOGIN_ENABLED);
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
