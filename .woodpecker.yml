@@ -1,0 +1,72 @@
+# .woodpecker.yml
+# cal.diy Docker 이미지 빌드 & artifact-keeper push
+# GitHub Actions(docker-publish.yml) 대신 내부 K8s Woodpecker CI 사용
+#
+# 빌드 결과: artifacts.toji.homes/neunexus/caldiy
+# Secrets: REGISTRY_TOKEN (Woodpecker repo secret — woodpecker-ci 계정 토큰)
+
+when:
+  - event: push
+    branch:
+      - feat/zitadel-oidc
+      - main
+  - event: manual
+
+steps:
+  - name: registry-login
+    image: alpine:3.20
+    environment:
+      REGISTRY_TOKEN:
+        from_secret: REGISTRY_TOKEN
+    commands:
+      - |
+        TOKEN=$(printenv REGISTRY_TOKEN || true)
+        if [ -z "$TOKEN" ]; then
+          echo "ERROR: REGISTRY_TOKEN secret is not set"
+          exit 1
+        fi
+        mkdir -p .docker
+        printf '{"auths":{"artifacts.toji.homes":{"auth":"%s"}}}\n' \
+          "$(printf 'woodpecker-ci:%s' "$TOKEN" | base64 | tr -d '\n')" \
+          > .docker/config.json
+        echo "Registry login config written."
+    when:
+      - event: push
+      - event: manual
+
+  - name: build-push
+    image: gcr.io/kaniko-project/executor:debug
+    commands:
+      - |
+        export DOCKER_CONFIG=$(pwd)/.docker
+        /kaniko/executor \
+          --context=dir://$(pwd) \
+          --dockerfile=$(pwd)/Dockerfile \
+          --build-arg NEXT_PUBLIC_WEBAPP_URL=https://cal.toji.homes \
+          --build-arg CALCOM_TELEMETRY_DISABLED=1 \
+          --build-arg NEXTAUTH_SECRET=placeholder-build-only \
+          --build-arg CALENDSO_ENCRYPTION_KEY=placeholder-build-only-key \
+          --destination=artifacts.toji.homes/neunexus/caldiy:${CI_COMMIT_SHA:0:7} \
+          --destination=artifacts.toji.homes/neunexus/caldiy:feat-zitadel-oidc \
+          --cache=true \
+          --cache-repo=artifacts.toji.homes/neunexus/caldiy/cache
+    when:
+      - event: push
+        branch:
+          - feat/zitadel-oidc
+          - main
+      - event: manual
+
+  - name: build-pr
+    image: gcr.io/kaniko-project/executor:debug
+    commands:
+      - |
+        /kaniko/executor \
+          --context=dir://$(pwd) \
+          --dockerfile=$(pwd)/Dockerfile \
+          --build-arg NEXT_PUBLIC_WEBAPP_URL=https://cal.toji.homes \
+          --build-arg CALCOM_TELEMETRY_DISABLED=1 \
+          --no-push \
+          --snapshot-mode=redo
+    when:
+      - event: pull_request
