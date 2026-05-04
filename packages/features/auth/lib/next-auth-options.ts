@@ -8,6 +8,12 @@ import {
   OUTLOOK_CLIENT_SECRET,
   OUTLOOK_LOGIN_ENABLED,
 } from "@calcom/features/auth/lib/outlook";
+import {
+  IS_ZITADEL_LOGIN_ENABLED,
+  ZITADEL_CLIENT_ID,
+  ZITADEL_CLIENT_SECRET,
+  ZITADEL_ISSUER,
+} from "@calcom/features/auth/lib/zitadel";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -49,6 +55,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
+import ZitadelProvider from "next-auth/providers/zitadel";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { dub } from "./dub";
 import { ErrorCode } from "./ErrorCode";
@@ -325,6 +332,25 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
           access_type: "offline",
           prompt: "consent",
         },
+      },
+    })
+  );
+}
+
+if (IS_ZITADEL_LOGIN_ENABLED && ZITADEL_ISSUER && ZITADEL_CLIENT_ID && ZITADEL_CLIENT_SECRET) {
+  providers.push(
+    ZitadelProvider({
+      issuer: ZITADEL_ISSUER,
+      clientId: ZITADEL_CLIENT_ID,
+      clientSecret: ZITADEL_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name ?? profile.preferred_username ?? "",
+          email: profile.email,
+          image: profile.picture ?? null,
+        };
       },
     })
   );

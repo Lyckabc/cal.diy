@@ -10,6 +10,10 @@ export const NEXTAUTH_TO_IDENTITY_PROVIDER: Record<string, IdentityProvider> = {
   saml: IdentityProvider.SAML,
   "saml-idp": IdentityProvider.SAML,
   cal: IdentityProvider.CAL,
+  // Zitadel OIDC maps to GOOGLE (closest OIDC provider in the enum).
+  // To use a dedicated enum value, add ZITADEL to packages/prisma/schema.prisma
+  // and run a migration.
+  zitadel: IdentityProvider.GOOGLE,
 };
 
 /**
